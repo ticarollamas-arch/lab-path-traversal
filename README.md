@@ -1,37 +1,26 @@
-# Lab: Path Traversal (CWE-22)
+<p align="center"><img src="assets/banner.svg" alt="Lab Path Traversal (CWE-22) — laboratório didático de falha, exploração e correção" width="100%"></p>
 
-> ⚠ **Em construção** — a documentação está pronta; o código está em migração e será publicado em breve.
+# Lab: Path Traversal (CWE-22) — laboratório didático de segurança
 
-Ambiente didático que sobe uma aplicação com uma falha real de travessia de diretório, demonstra a exploração e aplica a correção. Serve para treinar revisão de código e validar ferramentas de SAST.
+Laboratório para estudar **path traversal (CWE-22)**: uma aplicação com a falha, a demonstração da exploração contra um container local e a correção. Serve para treinar **revisão de código** e como caso de teste de regressão para ferramentas de **SAST**.
 
-[![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
+> **Em construção**: a documentação está pronta, mas o código (aplicação, exploit e patch) ainda não foi publicado neste repositório.
 
-> **Uso restrito ao laboratório.** A aplicação é vulnerável de propósito e roda isolada em container. Não exponha na internet nem aponte o exploit para sistemas de terceiros.
-
-## Estrutura
+## Estrutura planejada
 
 ```
 app-vulneravel/     aplicação com a falha
 exploit/            prova de conceito contra o container local
-patch/              o diff que corrige
-docs/analise.md     a explicação técnica
+patch/              diff com a correção
+docs/analise.md     explicação técnica
 docker-compose.yml
-```
-
-## Rodando
-
-```bash
-docker compose up -d
-python exploit/poc.py --alvo http://localhost:8080
 ```
 
 ## A falha
 
-A aplicação recebe um caminho vindo do usuário e o concatena à raiz de arquivos antes de abrir. Sem normalização, `../` sobe fora do diretório previsto e alcança arquivos de configuração do servidor.
+A aplicação recebe um caminho do usuário e o concatena à raiz de arquivos antes de abri-lo. Sem normalização e verificação, `../` sai do diretório previsto e alcança arquivos de configuração do servidor.
 
-O ponto central: **normalizar não basta se você não verificar o resultado.** A correção resolve o caminho absoluto e confirma que ele continua dentro da raiz permitida.
-
-## Antes e depois
+**Normalizar não basta se o resultado não for verificado.** A correção resolve o caminho absoluto e confirma que ele continua dentro da raiz permitida:
 
 ```python
 # vulnerável
@@ -45,11 +34,27 @@ if not caminho.startswith(os.path.realpath(RAIZ) + os.sep):
 return open(caminho).read()
 ```
 
-## Detecção
+## Como usar (quando o código for publicado)
 
-O achado é reproduzido por [«link do seu scanner»] com a regra CWE-22. O lab funciona como caso de teste de regressão da ferramenta.
+```bash
+git clone https://github.com/ticarollamas-arch/lab-path-traversal.git
+cd lab-path-traversal
+docker compose up -d
+python exploit/poc.py --alvo http://localhost:8080
+```
 
-## Leitura relacionada
+> **Uso restrito ao laboratório**: a aplicação é vulnerável de propósito e deve rodar isolada em container. Não a exponha na internet nem aponte o exploit para sistemas de terceiros.
 
-- CWE-22 — Improper Limitation of a Pathname to a Restricted Directory
-- OWASP Top 10 — A01: Broken Access Control
+## Ferramentas relacionadas
+
+- [varredor-vulnerabilidades](https://github.com/ticarollamas-arch/varredor-vulnerabilidades): triagem estática com regra CWE-22.
+- [go-traversal-detector](https://github.com/ticarollamas-arch/go-traversal-detector): detector de path traversal em código Go.
+
+## Referências
+
+- CWE-22: Improper Limitation of a Pathname to a Restricted Directory
+- OWASP Top 10: A01 — Broken Access Control
+
+## Licença
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
